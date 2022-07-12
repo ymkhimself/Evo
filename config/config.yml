@@ -1,0 +1,15 @@
+# COPYRIGHT NOTICE
+# 作者     ：ymk
+# 创建时间 ：2022/07/09 14:15
+# 描述     ：系统配置文件
+
+server:
+  port: 8080
+datasource:
+  host: 101.37.13.45
+  port: 3306
+  database: evo
+  username: root
+  pwd: 123456
+auth:
+  validity: 300 #token有效期，小时计算
