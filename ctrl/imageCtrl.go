@@ -6,43 +6,71 @@
 package ctrl
 
 import (
+	"Evo/docker"
 	"log"
-	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
+// 接受上传的tar文件，打包成镜像
+// 注意！必须是一个文件夹（名字为题目名）打包为名字.tar的打包文件
 func PostImage(c *gin.Context) {
 	// 解析表单
-	form, err := c.MultipartForm()
+	file, err := c.FormFile("image")
 	if err != nil {
 		log.Println(err.Error())
-		Fail(c, "上传出错", nil)
+		Fail(c, "上传失败", nil)
 		return
 	}
-	files := form.File["image"]
 	name := c.PostForm("name")
-	log.Println(name)
-	dst := "upload/image/" + name + "/"
-	if err = os.MkdirAll(dst, 0775); err != nil {
-		log.Println(err.Error())
+	imagePath := viper.GetString("image.path")
+	dst := imagePath + name + ".tar"
+	err = c.SaveUploadedFile(file, dst)
+	if err != nil {
 		Error(c, "保存失败", nil)
+		log.Println(err.Error())
 		return
 	}
-	//遍历所有文件
-	for _, file := range files {
-		err := c.SaveUploadedFile(file, dst+file.Filename)
-		if err != nil {
-			log.Println(err.Error())
-			err := os.RemoveAll(dst) //上传失败，把失败的东西删掉
-			if err != nil {
-				Error(c, "保存失败，请管理员查看日志", nil)
-				log.Println(err.Error())
-				return
-			}
-			Error(c, "保存失败", nil)
+	resp, err := docker.BuildImage(dst, name+"/Dockerfile", name)
+	if err != nil {
+		log.Println(err.Error())
+		if err == docker.ErrRead {
+			Success(c, "读取异常", nil)
+			return
+		} else {
+			Fail(c, "镜像构建失败", nil)
 			return
 		}
 	}
-	Success(c, "上传成功", nil)
+	Success(c, "构建成功", gin.H{
+		"process": string(resp),
+	})
+}
+
+// 列出所有镜像
+func GetImage(c *gin.Context) {
+	images, err := docker.ListImage()
+	if err != nil {
+		log.Println(err.Error())
+		Error(c, "出错了", nil)
+		return
+	}
+	Success(c, "成功", gin.H{
+		"images": images,
+	})
+}
+
+func DelImage(c *gin.Context) {
+	imageId := c.Query("image")
+	resp, err := docker.RemoveImage(imageId)
+	if err != nil {
+		log.Println(err.Error())
+		Error(c, "删除失败", nil)
+		return
+	}
+	log.Println("del image", imageId)
+	Success(c, "成功", gin.H{
+		"response": resp,
+	})
 }

@@ -21,11 +21,11 @@ func Response(c *gin.Context, httpStatus int, code int, msg string, data gin.H) 
 }
 
 func Fail(c *gin.Context, msg string, data gin.H) {
-	Response(c, http.StatusOK, 200, msg, data)
+	Response(c, http.StatusOK, 400, msg, data)
 }
 
 func Success(c *gin.Context, msg string, data gin.H) {
-	Response(c, http.StatusOK, 400, msg, data)
+	Response(c, http.StatusOK, 200, msg, data)
 }
 
 func Error(c *gin.Context, msg string, data gin.H) {
