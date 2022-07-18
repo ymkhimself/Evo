@@ -20,13 +20,13 @@ import (
 // 队伍登陆
 func TeamLogin(c *gin.Context) {
 	type loginForm struct {
-		Name string
-		Pwd  string
+		Name string `binding:"required"`
+		Pwd  string `binding:"required"`
 	}
 	var form loginForm
 	err := c.ShouldBind(&form)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Println(err.Error())
 		Error(c, "绑定错误", nil)
 	}
 	db := db.GetDB()
@@ -109,8 +109,8 @@ func PostTeam(c *gin.Context) {
 func PutTeam(c *gin.Context) {
 
 	type Form struct {
-		TeamId uint `json:"teamId"`
-		Name   string
+		TeamId uint   `json:"teamId" binding:"required"`
+		Name   string `binding:"required"`
 		Logo   string
 	}
 

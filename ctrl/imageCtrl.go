@@ -24,6 +24,12 @@ func PostImage(c *gin.Context) {
 		return
 	}
 	name := c.PostForm("name")
+
+	if name == "" {
+		Fail(c, "缺少参数", nil)
+		return
+	}
+
 	imagePath := viper.GetString("image.path")
 	dst := imagePath + name + ".tar"
 	err = c.SaveUploadedFile(file, dst)

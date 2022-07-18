@@ -19,14 +19,16 @@ import (
 //管理员登陆
 func AdminLogin(c *gin.Context) {
 	type loginForm struct {
-		Name string
-		Pwd  string
+		Name string `binding:"required"`
+		Pwd  string `binding:"required"`
 	}
 	var form loginForm
 	err := c.ShouldBind(&form)
 	if err != nil {
 		log.Println(err.Error())
+		Fail(c, "参数绑定失败", nil)
 	}
+
 	var admin model.Admin
 	db := db.GetDB()
 	if err = db.Where("name = ?", form.Name).First(&admin).Error; err != nil {
